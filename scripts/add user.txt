@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Script to add local user to a machine.
+
+# Display user name
+echo "Your User Name is $(id -un)"
+
+# Check if root
+if [[ "$UID" -eq 0 ]]
+then
+  echo 'you are root'
+else
+  echo 'You are not root, this program will now exit'
+  exit 1
+fi
+
+# Get the username (login).
+read -p 'Enter the user name here: ' USER_NAME
+
+# Get the real name (contents for the description field).
+read -p 'Enter the real name of the person who the account is for: ' COMMENT
+
+# Get the password.
+read -p 'Enter the password to use for the account here: ' PASSWORD
+
+# Create the user with the password.
+useradd -c "${COMMENT}" -m ${USER_NAME}
+
+# Check to see if the useradd command succeeded.
+if [[ $? -eq 0 ]]
+then
+  echo 'user added sucesfully'
+else
+  echo 'user creation failed'
+  exit 1
+fi
+
+# Set the password.
+echo ${PASSWORD} | passwd --stdin ${USER_NAME}
+
+# Check to see if the passwd command succeeded.
+if [[ $? -eq 0 ]]
+then
+  echo 'password created sucesfully'
+else
+  echo 'password creation failed'
+  exit 1
+fi
+
+# Force password change on first login.
+passwd -e ${USER_NAME}
+
+# Display the username, password, and the host where the user was created.
+echo " The user name created is ${USER_NAME}, the password is ${PASSWORD} and
+the local machine is $(hostname)"
