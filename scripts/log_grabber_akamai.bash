@@ -15,9 +15,8 @@ do
 done
 
 #Aquire the log time of the first line
-log_time=$(zcat $log_file | awk '$2=="r" {print $3}' | head -1)
-modified_log_time=${log_time::-3}
-log_date=$(date -d @"$modified_log_time")
+log_time=$(zcat $log_file | awk '$2=="r" {print $3}' | head -1 | cut -d "." -f 1)
+log_date=$(date -d @"$log_time")
 
 #User to input the hostnames
 printf "Please type in the HostNames to analyse separated by a space with no commas.\n"
@@ -41,9 +40,17 @@ do
 		#If there is no succesful 200 r line request then state as much and grab any R line with any status
 		if [ -z "$req_id" ];
         then
-                printf "There are no requests that returned an R line with status 200.\n\n"
-                printf "Aquiring R line with any status code.\n\n"
-                zcat $log_file | grep "$hostname" | grep "$cidr" | awk '$2=="r" {print $0}' | head -1
+                r_line=$(zcat $log_file | grep "$hostname" | grep "$cidr" | awk '$2=="r" {print $0}' | head -1)
+				
+				#if there is no r line then state as much, else print the r line
+				if [ -z "$r_line" ];
+				then
+					printf "There are no lines for this request. Sorry"
+				else
+					printf "There are no requests that returned an R line with status 200.\n\n"
+					printf "Aquiring R line with any status code.\n\n"
+					echo "$r_line"
+				fi	
         
 		#If there was a succesful R line then grep for the request ID and output results
 		else
